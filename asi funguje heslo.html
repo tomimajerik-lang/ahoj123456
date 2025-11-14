@@ -1,0 +1,1259 @@
+<!DOCTYPE html>
+<html lang="sk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Naša časová os</title>
+    <link rel="icon" type="image/png" href="images/srdce.png">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #333;
+            overflow-x: hidden;
+        }
+
+        /* ============================================ */
+        /* ZAČIATOK - ŠTÝLY PRE TAJNÝ KÓD              */
+        /* ============================================ */
+        .secret-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100vh;
+            background: linear-gradient(135deg, #ff6b9d 0%, #ffa07a 50%, #ff8fab 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            transition: opacity 0.5s ease;
+        }
+
+        .secret-overlay.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .secret-card {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 50px 40px;
+            border-radius: 25px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            text-align: center;
+            max-width: 400px;
+            width: 90%;
+            animation: fadeInScale 0.6s ease;
+        }
+
+        @keyframes fadeInScale {
+            from {
+                opacity: 0;
+                transform: scale(0.8);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        .secret-card h2 {
+            font-size: 2rem;
+            color: #ff6b9d;
+            margin-bottom: 10px;
+            font-family: 'Brush Script MT', cursive;
+        }
+
+        .secret-card p {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 1rem;
+        }
+
+        .code-input {
+            width: 100%;
+            padding: 15px 20px;
+            font-size: 1.1rem;
+            border: 2px solid #ff6b9d;
+            border-radius: 30px;
+            outline: none;
+            text-align: center;
+            margin-bottom: 20px;
+            transition: all 0.3s ease;
+        }
+
+        .code-input:focus {
+            border-color: #ff4d88;
+            box-shadow: 0 0 0 4px rgba(255, 107, 157, 0.2);
+        }
+
+        .code-input.error {
+            border-color: #ff4444;
+            animation: shake 0.5s ease;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-10px); }
+            75% { transform: translateX(10px); }
+        }
+
+        .submit-btn {
+            background: linear-gradient(135deg, #ff6b9d 0%, #ff4d88 100%);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            font-size: 1.1rem;
+            border-radius: 30px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: bold;
+        }
+
+        .submit-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(255, 107, 157, 0.4);
+        }
+
+        .submit-btn:active {
+            transform: translateY(0);
+        }
+
+        .error-message {
+            color: #ff4444;
+            font-size: 0.9rem;
+            margin-top: 10px;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .error-message.show {
+            opacity: 1;
+        }
+
+        .main-content {
+            display: none;
+        }
+
+        .main-content.visible {
+            display: block;
+        }
+
+        .hero {
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            color: white;
+            position: relative;
+            z-index: 10;
+        }
+
+        .hero-content h1 {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+            animation: fadeInDown 1s ease;
+        }
+
+        .hero-content h2 {
+            font-size: 1.8rem;
+            margin-bottom: 0.5rem;
+            animation: fadeInUp 1s ease 0.2s both;
+        }
+
+        .hero-content p {
+            font-size: 1.5rem;
+            animation: fadeInUp 1s ease 0.3s both;
+            margin-top: 2rem;
+        }
+
+        .scroll-indicator {
+            position: absolute;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            animation: bounce 2s infinite;
+        }
+
+        .scroll-indicator::after {
+            content: '↓';
+            font-size: 2rem;
+            color: white;
+        }
+
+        @keyframes fadeInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-50px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(50px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes bounce {
+            0%, 20%, 50%, 80%, 100% {
+                transform: translateX(-50%) translateY(0);
+            }
+            40% {
+                transform: translateX(-50%) translateY(-20px);
+            }
+            60% {
+                transform: translateX(-50%) translateY(-10px);
+            }
+        }
+
+        .timeline-section {
+            background: #f5f5f5;
+            padding: 80px 20px;
+            min-height: 100vh;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .heart {
+            position: absolute;
+            font-size: 2rem;
+            opacity: 0.5;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        .timeline {
+            max-width: 1200px;
+            margin: 0 auto;
+            position: relative;
+            z-index: 10;
+        }
+
+        .timeline::before {
+            content: '';
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 4px;
+            height: 100%;
+            background: linear-gradient(180deg, #667eea 0%, #764ba2 100%);
+        }
+
+        .timeline-item {
+            margin-bottom: 80px;
+            position: relative;
+            width: 100%;
+        }
+
+        .timeline-item:nth-child(odd) .timeline-content {
+            margin-left: auto;
+            text-align: left;
+        }
+
+        .timeline-item:nth-child(even) .timeline-content {
+            margin-right: auto;
+            text-align: right;
+        }
+
+        .timeline-content {
+            width: 45%;
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            position: relative;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .timeline-content:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 15px 40px rgba(0,0,0,0.2);
+        }
+
+        .timeline-marker {
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 30px;
+            height: 30px;
+            background: #667eea;
+            border: 5px solid white;
+            border-radius: 50%;
+            top: 30px;
+            z-index: 2;
+            box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.2);
+        }
+
+        .day-label {
+            display: inline-block;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 8px 20px;
+            border-radius: 20px;
+            font-weight: bold;
+            margin-bottom: 15px;
+            font-size: 0.9rem;
+        }
+
+        .timeline-content h2 {
+            font-size: 1.8rem;
+            color: #333;
+            margin-bottom: 15px;
+        }
+
+        .timeline-content p {
+            line-height: 1.8;
+            color: #666;
+            margin-bottom: 20px;
+        }
+
+        .timeline-image {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 10px;
+            margin-top: 15px;
+        }
+
+        .timeline-video {
+            width: 100%;
+            height: auto;
+            border-radius: 10px;
+            margin-top: 15px;
+        }
+
+        @media (max-width: 768px) {
+            .hero-content h1 {
+                font-size: 2.5rem;
+            }
+
+            .hero-content h2 {
+                font-size: 1.3rem;
+            }
+
+            .hero-content p {
+                font-size: 1.2rem;
+            }
+
+            .timeline::before {
+                left: 30px;
+            }
+
+            .timeline-marker {
+                left: 30px;
+            }
+
+            .timeline-content {
+                width: calc(100% - 80px);
+                margin-left: 80px !important;
+                text-align: left !important;
+            }
+        }
+
+        .timeline-end {
+            position: relative;
+            margin-top: 60px;
+            text-align: center;
+        }
+
+        .end-marker {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 50%;
+            margin: 0 auto 30px;
+            box-shadow: 0 0 0 8px rgba(102, 126, 234, 0.2);
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                box-shadow: 0 0 0 8px rgba(102, 126, 234, 0.2);
+            }
+            50% {
+                box-shadow: 0 0 0 15px rgba(102, 126, 234, 0.1);
+            }
+        }
+
+        .end-content {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 50px 40px;
+            border-radius: 20px;
+            max-width: 700px;
+            margin: 0 auto;
+            box-shadow: 0 15px 50px rgba(102, 126, 234, 0.3);
+        }
+
+        .end-content h2 {
+            font-size: 2.2rem;
+            margin-bottom: 20px;
+            color: white;
+        }
+
+        .end-content p {
+            font-size: 1.2rem;
+            line-height: 1.8;
+            color: rgba(255,255,255,0.95);
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Overlay s tajným kódom -->
+    <div class="secret-overlay" id="secretOverlay">
+        <div class="secret-card">
+            <h2>Zadaj tajný kód</h2>
+            <p>Kto koho ľubi viac? 💕</p>
+            <input 
+                type="password" 
+                class="code-input" 
+                id="codeInput" 
+                placeholder="••••" 
+                maxlength="10"
+            >
+            <button class="submit-btn" onclick="checkCode()">Enter</button>
+            <div class="error-message" id="errorMessage">Nesprávny kód! Skús znova 💔</div>
+        </div>
+    </div>
+
+    <!-- Hlavný obsah stránky -->
+    <div class="main-content" id="mainContent">
+
+        <div class="hero">
+            <div class="hero-content">
+                <h1>Ako sme si spolu užili</h1> 
+                <h2>43 200 000 sekúnd,</h2>
+                <h2>720 000 minút,</h2>
+                <h2>12 000 hodín</h2>
+                <h2>500 dni,</h2>
+                <h2>71 týždňov.</h2>
+                <p>Scrolluj dole a zaspomínaj aké to bolo</p>
+            </div>
+            <div class="scroll-indicator"></div>
+        </div>
+
+        <div class="timeline-section">
+            <div class="timeline">
+                
+                <!-- DEŇ -11 - spomienky -->
+                <div class="timeline-item">
+                    <div class="timeline-marker"></div>
+                    <div class="timeline-content">
+                        <span class="day-label">Deň -11  (7.6.2024)</span>
+                        <h2>Naše začiatky</h2>
+                        <p>Toto je jeden z naších úplne prvých spoločných chvíľ, kedy sme sa ešte len spoznávali a tam si 
+                            vyfotila túto fotku, tieto kvetinky, ktoré som ti potom aj vytrhol a dal a ty si si ich nechala 
+                            a vysušila a nosila pod krytom a vždycky si mi urobila extrémnu radosť keď, som si všimol že ich ešte
+                            stále nosíš a preto som to tu dal ako ikonicky moment nášho vzťahu.
+                        </p>
+                        <img src="images/kvetinka.jpg" alt="Deň 1" class="timeline-image">
+                    </div>
+                </div>
+
+                <!-- DEŇ -2 spomienka -->
+                <div class="timeline-item">
+                    <div class="timeline-marker"></div>
+                    <div class="timeline-content">
+                        <span class="day-label">Deň -2 (16.6)</span>
+                        <h2></h2>
+                        <p> </p>
+                        <img src="images/ahoj32.jpg" alt="Deň 5" class="timeline-image">
+                    </div>
+                </div>
+
+                <!-- DEŇ 1 zaciatok -->
+            <div class="timeline-item">
+                <div class="timeline-marker"></div>
+                <div class="timeline-content">
+                    <span class="day-label">Deň 1 (18.6)</span>
+                    <h2>Tu to konečne začalo</h2>
+                    <p>Príbeh o tom ako sme si dali prvu pusu a aky som bo stastny v ten den a chapes 
+                        mam casu dost na to napisat to a tak chapes ne jj fr bro ong omg</p>
+                        <img src="images/Tomik_pusinka.jpg" alt="Deň 5" class="timeline-image">
+                </div>
+            </div>
+
+
+            <!-- DEŇ 6 spomienka -->
+            <div class="timeline-item">
+                <div class="timeline-marker"></div>
+                <div class="timeline-content">
+                    <span class="day-label">Deň 6 (23.6)</span>
+                    <h2></h2>
+                    <p></p>
+                    <img src="images/randomnazov.jpg" alt="Deň 5" class="timeline-image">
+                </div>
+            </div>
+
+            <!-- DEŇ 8 spomienka -->
+            <div class="timeline-item">
+                <div class="timeline-marker"></div>
+                <div class="timeline-content">
+                    <span class="day-label">Deň 8 (25.6)</span>
+                    <h2></h2>
+                    <p></p>
+                    <img src="images/anoo123.jpg" alt="Deň 5" class="timeline-image">
+                </div>
+            </div>
+
+            <!-- DEŇ 12 spomienka -->
+            <div class="timeline-item">
+                <div class="timeline-marker"></div>
+                <div class="timeline-content">
+                    <span class="day-label">Deň 12 (29.6)</span>
+                    <h2></h2>
+                    <p>Tu som prvykrát zistil aký máš fajný gyatt</p>
+                    <img src="images/pipik.jpg" alt="Deň 20" class="timeline-image">
+                </div>
+            </div>
+
+            <!-- DEŇ  12 spomienka-->
+            <div class="timeline-item">
+                <div class="timeline-marker"></div>
+                <div class="timeline-content">
+                    <span class="day-label">Deň 12 (29.6)</span>
+                    <h2>Veľký</h2>
+                    <p></p>
+                    <video controls class="timeline-video">
+                <source src="videos/velkykokot.mp4" type="video/mp4">  </video>
+                </div>
+            </div>
+
+            <!-- DEŇ 19 fotka -->
+            <div class="timeline-item">
+                <div class="timeline-marker"></div>
+                <div class="timeline-content">
+                    <span class="day-label">Deň 19 (6.7)</span>
+                    <h2>Moja obľúbená fotka</h2>
+                    <p>Túto fotku som tu dal len tak, lebo proste je to jedna z mojích obľúbených
+                         fotiek a si tam mega pekná a cute.</p>
+                    <img src="images/megapekna.jpg" alt="Deň 20" class="timeline-image">
+                </div>
+            </div>
+
+            <!-- DEŇ 29 pusinky -->
+            <div class="timeline-item">
+                <div class="timeline-marker"></div>
+                <div class="timeline-content">
+                    <span class="day-label">Deň 29 (16.7)</span>
+                    <h2>Pusinky</h2>
+                    <p></p>
+                    <img src="images/pusinky.jpg" alt="Deň 20" class="timeline-image">
+                </div>
+            </div>
+
+            <!-- DEŇ 31 -->
+            <div class="timeline-item">
+                <div class="timeline-marker"></div>
+                <div class="timeline-content">
+                    <span class="day-label">Deň 31 (18.7)</span>
+                    <h2>Moje narodeniny / mesiac výročie</h2>
+                    <p>Batman tričko 😉😉</p>
+                    
+                </div>
+            </div>
+
+            <!-- DEŇ 32 -->
+            <div class="timeline-item">
+                <div class="timeline-marker"></div>
+                <div class="timeline-content">
+                    <span class="day-label">Deň 32 (19.7)</span>
+                    <h2>Tvoj darček na výročie mesiaca</h2>
+                    <p>ps. si cute</p>
+                    <img src="images/image123.jpg" alt="Deň 20" class="timeline-image">
+                </div>
+            </div>
+
+            <!-- DEŇ 38 -->
+            <div class="timeline-item">
+                <div class="timeline-marker"></div>
+                <div class="timeline-content">
+                    <span class="day-label">Deň 38 (25.7)</span>
+                    <h2>Moje úplne najobľúbenejšie video zo všetkých.</h2>
+                    <p></p>
+                    <video controls class="timeline-video">
+                <source src="videos/bestofthebest.mp4" type="video/mp4">  </video>
+                </div>
+            </div>
+
+            <!-- DEŇ 40 spoznanie tvojích rodičov -->
+            <div class="timeline-item">
+                <div class="timeline-marker"></div>
+                <div class="timeline-content">
+                    <span class="day-label">Deň 40 (27.7)</span>
+                    <h2>Prvé stretnutie tvojích rodičov</h2>
+                    <p>Išli sme sa spolu kúpať bodka bodka bodka text text text text </p>
+                    <img src="images/ahojda.jpg" alt="Deň 20" class="timeline-image">
+                </div>
+            </div>
+
+            <!-- DEŇ 40 spoznanie tvojích rodičov -->
+            <div class="timeline-item">
+                <div class="timeline-marker"></div>
+                <div class="timeline-content">
+                    <span class="day-label">Deň 40 (27.7)</span>
+                    <h2></h2>
+                    <p></p>
+                    <img src="images/ahojda1.jpg" alt="Deň 20" class="timeline-image">
+                </div>
+            </div>
+
+            <!-- DEŇ 40 spoznanie tvojích rodičov -->
+            <div class="timeline-item">
+                <div class="timeline-marker"></div>
+                <div class="timeline-content">
+                    <span class="day-label">Deň 40 (27.7)</span>
+                    <h2></h2>
+                    <p></p>
+                    <video controls class="timeline-video">
+                <source src="videos/hnevatsa.mp4" type="video/mp4">  </video>
+                </div>
+            </div>
+
+            <!-- DEŇ 45 -->
+            <div class="timeline-item">
+                <div class="timeline-marker"></div>
+                <div class="timeline-content">
+                    <span class="day-label">Deň 45 (1.8)</span>
+                    <h2>Veľmi nádherne strávený deň</h2>
+                    <p>Boli sme vonku a bola si pekna a mala si suknu a kupil som ti topanky tie so smajlikom a ty si mi kupila puncovy 
+                        kolacik v tvare srdiecka a sebe klobuk v ktorom si bola mega pekna a ktory si uz nikdy potom nenosila :( aa bodka bodka bodka  </p>
+                    <video controls class="timeline-video">
+                <source src="videos/cauvlog.mp4" type="video/mp4">  </video>
+                </div>
+            </div>
+
+            <!-- DEŇ 45 -->
+            <div class="timeline-item">
+                <div class="timeline-marker"></div>
+                <div class="timeline-content">
+                    <span class="day-label">Deň 45 (1.8)</span>
+                    <h2>Čaká ťa vlna spomienok</h2>
+                    <p></p>
+                    <video controls class="timeline-video">
+                <source src="videos/freaky.mp4" type="video/mp4">  </video>
+                </div>
+            </div>
+
+            <!-- DEŇ 45 -->
+            <div class="timeline-item">
+                <div class="timeline-marker"></div>
+                <div class="timeline-content">
+                    <span class="day-label">Deň 45 (1.8)</span>
+                    <h2></h2>
+                    <p></p>
+                    <img src="images/cicky.jpg" alt="Deň 20" class="timeline-image">
+                </div>
+            </div>
+
+            <!-- DEŇ 45 -->
+            <div class="timeline-item">
+                <div class="timeline-marker"></div>
+                <div class="timeline-content">
+                    <span class="day-label">Deň 45 (1.8)</span>
+                    <h2></h2>
+                    <p></p>
+                    <video controls class="timeline-video">
+                <source src="videos/puta.mp4" type="video/mp4">  </video>
+                </div>
+            </div>
+
+            <!-- DEŇ 45 -->
+            <div class="timeline-item">
+                <div class="timeline-marker"></div>
+                <div class="timeline-content">
+                    <span class="day-label">Deň 45 (1.8)</span>
+                    <h2></h2>
+                    <p></p>
+                    <img src="images/fotka.jpg" alt="Deň 20" class="timeline-image">
+                </div>
+            </div>
+
+            <!-- DEŇ 45 -->
+            <div class="timeline-item">
+                <div class="timeline-marker"></div>
+                <div class="timeline-content">
+                    <span class="day-label">Deň 45 (1.8)</span>
+                    <h2></h2>
+                    <p></p>
+                    <video controls class="timeline-video">
+                <source src="videos/nasilie.mp4" type="video/mp4">  </video>
+                </div>
+            </div>
+
+            <!-- DEŇ 45 -->
+            <div class="timeline-item">
+                <div class="timeline-marker"></div>
+                <div class="timeline-content">
+                    <span class="day-label">Deň 45 (1.8)</span>
+                    <h2></h2>
+                    <p></p>
+                    <img src="images/milujem.jpg" alt="Deň 20" class="timeline-image">
+                </div>
+            </div>
+
+            <!-- DEŇ 45 -->
+            <div class="timeline-item">
+                <div class="timeline-marker"></div>
+                <div class="timeline-content">
+                    <span class="day-label">Deň 45 (1.8)</span>
+                    <h2>Milujem jak ti v každom jednom videu vidno radosť v očiach a ten tvoj úsmev proste >>>>>></h2>
+                    <p></p>
+                    <video controls class="timeline-video">
+                <source src="videos/padam.mp4" type="video/mp4">  </video>
+                </div>
+            </div>
+
+            <!-- DEŇ 45 -->
+            <div class="timeline-item">
+                <div class="timeline-marker"></div>
+                <div class="timeline-content">
+                    <span class="day-label">Deň 45 (1.8)</span>
+                    <h2></h2>
+                    <p></p>
+                    <img src="images/selfie.jpg" alt="Deň 20" class="timeline-image">
+                </div>
+            </div>
+
+            <!-- DEŇ 45 -->
+            <div class="timeline-item">
+                <div class="timeline-marker"></div>
+                <div class="timeline-content">
+                    <span class="day-label">Deň 45 (1.8)</span>
+                    <h2></h2>
+                    <p></p>
+                    <video controls class="timeline-video">
+                <source src="videos/putaa.mp4" type="video/mp4">  </video>
+                </div>
+            </div>
+
+            <!-- DEŇ 45 -->
+            <div class="timeline-item">
+                <div class="timeline-marker"></div>
+                <div class="timeline-content">
+                    <span class="day-label">Deň 45 (1.8)</span>
+                    <h2></h2>
+                    <p></p>
+                    <video controls class="timeline-video">
+                <source src="videos/romantik.mp4" type="video/mp4">  </video>
+                </div>
+            </div>
+
+            <!-- DEŇ 49 -->
+            <div class="timeline-item">
+                <div class="timeline-marker"></div>
+                <div class="timeline-content">
+                    <span class="day-label">Deň 49 (5.8)</span>
+                    <h2>Tu sme sa týždeň nevideli :(</h2>
+                    <p></p>
+                    <video controls class="timeline-video">
+                <source src="videos/svaly.mp4" type="video/mp4">  </video>
+                </div>
+            </div>
+
+            <!-- DEŇ 65 -->
+            <div class="timeline-item">
+                <div class="timeline-marker"></div>
+                <div class="timeline-content">
+                    <span class="day-label">Deň 65 (21.8)</span>
+                    <h2>😜</h2>
+                    <p></p>
+                    <video controls class="timeline-video">
+                <source src="videos/ahoj3210.mp4" type="video/mp4">  </video>
+                </div>
+            </div>
+
+            <!-- DEŇ 72 -->
+            <div class="timeline-item">
+                <div class="timeline-marker"></div>
+                <div class="timeline-content">
+                    <span class="day-label">Deň 72 (28.8)</span>
+                    <h2>😜😜😜😜</h2>
+                    <p></p>
+                    <video controls class="timeline-video">
+                <source src="videos/ahoj321.mp4" type="video/mp4">  </video>
+                </div>
+            </div>
+
+            <!-- DEŇ 80 -->
+            <div class="timeline-item">
+                <div class="timeline-marker"></div>
+                <div class="timeline-content">
+                    <span class="day-label">Deň 80 (5.9)</span>
+                    <h2></h2>
+                    <p></p>
+                    <img src="images/biceps.jpg" alt="Deň 20" class="timeline-image">
+                </div>
+            </div>
+
+            <!-- DEŇ 95 -->
+            <div class="timeline-item">
+                <div class="timeline-marker"></div>
+                <div class="timeline-content">
+                    <span class="day-label">Deň 95 (20.9)</span>
+                    <h2>Na najhoršej pizzi na svete.</h2>
+                    <p>Ani som nebol unaveny iba som sa robil</p>
+                    <img src="images/spinky.jpg" alt="Deň 20" class="timeline-image">
+                </div>
+            </div>
+
+            <!-- DEŇ 118 -->
+            <div class="timeline-item">
+                <div class="timeline-marker"></div>
+                <div class="timeline-content">
+                    <span class="day-label">Deň 118 (13.10)</span>
+                    <h2>Tetania</h2>
+                    <p>Tu si prišla po pijatike a začala ma potom fotiť.</p>
+                    <img src="images/anoo321.jpg" alt="Deň 20" class="timeline-image">
+                </div>
+            </div>
+
+            <!-- DEŇ 118 -->
+            <div class="timeline-item">
+                <div class="timeline-marker"></div>
+                <div class="timeline-content">
+                    <span class="day-label">Deň 118 (13.10)</span>
+                    <h2>Tu som mal ešte svaly 🥲</h2>
+                    <p></p>
+                    <img src="images/uno.jpg" alt="Deň 20" class="timeline-image">
+                </div>
+            </div>
+
+            <!-- DEŇ 118 -->
+            <div class="timeline-item">
+                <div class="timeline-marker"></div>
+                <div class="timeline-content">
+                    <span class="day-label">Deň 118 (13.10)</span>
+                    <h2></h2>
+                    <p></p>
+                    <img src="images/dos.jpg" alt="Deň 20" class="timeline-image">
+                </div>
+            </div>
+
+            <!-- DEŇ 118 -->
+            <div class="timeline-item">
+                <div class="timeline-marker"></div>
+                <div class="timeline-content">
+                    <span class="day-label">Deň 118 (13.10)</span>
+                    <h2></h2>
+                    <p></p>
+                    <img src="images/tres.jpg" alt="Deň 20" class="timeline-image">
+                </div>
+            </div>
+
+            <!-- DEŇ 120 -->
+            <div class="timeline-item">
+                <div class="timeline-marker"></div>
+                <div class="timeline-content">
+                    <span class="day-label">Deň 120 (15.10)</span>
+                    <h2>Čisto ty</h2>
+                    <p></p>
+                    <video controls class="timeline-video">
+                <source src="videos/skrecok.mp4" type="video/mp4">  </video>
+                </div>
+            </div>
+
+            <!-- DEŇ 135 -->
+            <div class="timeline-item">
+                <div class="timeline-marker"></div>
+                <div class="timeline-content">
+                    <span class="day-label">Deň 135 (30.10)</span>
+                    <h2>Ako si pamätám našu úplne prvú prespávačku</h2>
+                    <p></p>
+                </div>
+            </div>
+
+            <!-- DEŇ 153 -->
+            <div class="timeline-item">
+                <div class="timeline-marker"></div>
+                <div class="timeline-content">
+                    <span class="day-label">Deň 153 (17.11)</span>
+                    <h2>Ta aj trochu mňa ne</h2>
+                    <p></p>
+                    <img src="images/ja.jpg" alt="Deň 20" class="timeline-image">
+                </div>
+            </div>
+
+            <!-- DEŇ 188 -->
+            <div class="timeline-item">
+                <div class="timeline-marker"></div>
+                <div class="timeline-content">
+                    <span class="day-label">Deň 188 (22.12)</span>
+                    <h2>Naše tajná prespávačka</h2>
+                    <p>text text text </p>
+                    
+                </div>
+            </div>
+
+            <!-- DEŇ 192 -->
+            <div class="timeline-item">
+                <div class="timeline-marker"></div>
+                <div class="timeline-content">
+                    <span class="day-label">Deň 192 (26.12)</span>
+                    <h2>Naše prvé vianoce</h2>
+                    <p>text text text </p>
+                    <img src="images/pipik1.jpg" alt="Deň 20" class="timeline-image">
+                </div>
+            </div>
+
+            <!-- DEŇ 192 -->
+            <div class="timeline-item">
+                <div class="timeline-marker"></div>
+                <div class="timeline-content">
+                    <span class="day-label">Deň 192 (26.12)</span>
+                    <h2></h2>
+                    <p></p>
+                    <video controls class="timeline-video">
+                <source src="videos/putaaa.mp4" type="video/mp4">  </video>
+                </div>
+            </div>
+
+            <!-- DEŇ 192 -->
+            <div class="timeline-item">
+                <div class="timeline-marker"></div>
+                <div class="timeline-content">
+                    <span class="day-label">Deň 192 (26.12)</span>
+                    <h2></h2>
+                    <p></p>
+                    <img src="images/pipik2.jpg" alt="Deň 20" class="timeline-image">
+                </div>
+            </div>
+
+            <!-- DEŇ 193 -->
+            <div class="timeline-item">
+                <div class="timeline-marker"></div>
+                <div class="timeline-content">
+                    <span class="day-label">Deň 193 (27.12)</span>
+                    <h2>Najlepší pocit, MILUJEM!</h2>
+                    <p></p>
+                    <img src="images/pipik3.jpg" alt="Deň 20" class="timeline-image">
+                </div>
+            </div>
+
+            <!-- DEŇ 193 -->
+            <div class="timeline-item">
+                <div class="timeline-marker"></div>
+                <div class="timeline-content">
+                    <span class="day-label">Deň 193 (27.12)</span>
+                    <h2>Moje malé bejby</h2>
+                    <p></p>
+                    <img src="images/pipik4.jpg" alt="Deň 20" class="timeline-image">
+                </div>
+            </div>
+
+            <!-- DEŇ 193 -->
+            <div class="timeline-item">
+                <div class="timeline-marker"></div>
+                <div class="timeline-content">
+                    <span class="day-label">Deň 193 (27.12)</span>
+                    <h2>Korčuľovanie</h2>
+                    <p></p>
+                    <img src="images/pipik5.jpg" alt="Deň 20" class="timeline-image">
+                </div>
+            </div>
+
+            <!-- DEŇ 194 -->
+            <div class="timeline-item">
+                <div class="timeline-marker"></div>
+                <div class="timeline-content">
+                    <span class="day-label">Deň 194 (28.12)</span>
+                    <h2>Vianočné trhy Košice</h2>
+                    <p>trdelnik, mikinka, ruske koleso bodka bodka bodka text text text</p>
+                    <img src="images/pipik6.jpg" alt="Deň 20" class="timeline-image">
+                </div>
+            </div>
+
+            <!-- DEŇ 194 -->
+            <div class="timeline-item">
+                <div class="timeline-marker"></div>
+                <div class="timeline-content">
+                    <span class="day-label">Deň 194 (28.12)</span>
+                    <h2></h2>
+                    <p></p>
+                    <img src="images/pipik7.jpg" alt="Deň 20" class="timeline-image">
+                </div>
+            </div>
+
+            <!-- DEŇ 194 -->
+            <div class="timeline-item">
+                <div class="timeline-marker"></div>
+                <div class="timeline-content">
+                    <span class="day-label">Deň 194 (28.12)</span>
+                    <h2></h2>
+                    <p></p>
+                    <video controls class="timeline-video">
+                <source src="videos/peniis.mp4" type="video/mp4">  </video>
+                </div>
+            </div>
+
+            <!-- DEŇ 198 -->
+            <div class="timeline-item">
+                <div class="timeline-marker"></div>
+                <div class="timeline-content">
+                    <span class="day-label">Deň 198 (1.1.2025)</span>
+                    <h2>Ako si ma prišla prekvapiť</h2>
+                    <p></p>
+                    
+                </div>
+            </div>
+
+            <!-- DEŇ 242 -->
+            <div class="timeline-item">
+                <div class="timeline-marker"></div>
+                <div class="timeline-content">
+                    <span class="day-label">Deň 242 (14.2.2025)</span>
+                    <h2>Valentín</h2>
+                    <p></p>
+                    <img src="images/valentin.jpg" alt="Deň 20" class="timeline-image">
+                </div>
+            </div>
+
+            <!-- DEŇ 248 -->
+            <div class="timeline-item">
+                <div class="timeline-marker"></div>
+                <div class="timeline-content">
+                    <span class="day-label">Deň 248 (20.2.2025)</span>
+                    <h2>AquaCity Poprad</h2>
+                    <p>Náš prvý výlet kedy sme aj prespali a boli sa kupat a mali sme rande prechadzku a objavili sme nove mesto, 
+                        ochutnali cinu v poprade, rano si kupili ranajky a proste vysneny den</p>
+                </div>
+            </div>
+
+            <!-- DEŇ 395 -->
+            <div class="timeline-item">
+                <div class="timeline-marker"></div>
+                <div class="timeline-content">
+                    <span class="day-label">Deň 395 (17.7.2025)</span>
+                    <h2>Moje 18 narodeniny</h2>
+                    <p></p>
+                    <img src="images/narodeniny1.jpg" alt="Deň 20" class="timeline-image">
+                </div>
+            </div>
+
+            <!-- DEŇ 417 -->
+            <div class="timeline-item">
+                <div class="timeline-marker"></div>
+                <div class="timeline-content">
+                    <span class="day-label">Deň 417 (8.8.2025)</span>
+                    <h2>Košice výlet a motokáry</h2>
+                    <p></p>
+                    <video controls class="timeline-video">
+                <source src="videos/motokary.mov" type="video/mp4">  </video>
+                </div>
+            </div>
+
+            <!-- DEŇ 435 -->
+            <div class="timeline-item">
+                <div class="timeline-marker"></div>
+                <div class="timeline-content">
+                    <span class="day-label">Deň 435 (26.8.2025)</span>
+                    <h2>Plastelína</h2>
+                    <p></p>
+                    <img src="images/plastelina.jpg" alt="Deň 20" class="timeline-image">
+                </div>
+            </div>
+
+            <!-- DEŇ 441 -->
+            <div class="timeline-item">
+                <div class="timeline-marker"></div>
+                <div class="timeline-content">
+                    <span class="day-label">Deň 441 (1.9.2025)</span>
+                    <h2>Tvoje Narodeniny rande</h2>
+                    <p>Domaša, rande, jazda, losy </p>
+                </div>
+            </div>
+
+            <!-- DEŇ 453 -->
+            <div class="timeline-item">
+                <div class="timeline-marker"></div>
+                <div class="timeline-content">
+                    <span class="day-label">Deň 453 (13.9.2025)</span>
+                    <h2>Tvoja Narodeninová oslava</h2>
+                    <p></p>
+                    <img src="images/narodky.jpg" alt="Deň 20" class="timeline-image">
+                </div>
+            </div>
+
+            <!-- DEŇ 453 -->
+            <div class="timeline-item">
+                <div class="timeline-marker"></div>
+                <div class="timeline-content">
+                    <span class="day-label">Deň 453 (13.9.2025)</span>
+                    <h2></h2>
+                    <p>Ja viem že som to veľmi nedaval najavo ale naozaj som sa u vás a s tvojou rodinou citil proste doma a veľmi dlho mi tam bolo aj lepšie ako doma, s vami a vždy sa usmejem
+                        keď tu fotku vidim lebo sa citim ze niekde patrim, aj keď 
+                        som s nimi malo rozprával, ale mal som rád aj tie krátke konverzácie s tvojim ocom, keď sa ma napríklad spýtal ako sa mám alebo hocičo a chýba mi aj to a mrzí ma 
+                        že som ich viac nespoznal.
+                    </p>
+                    <img src="images/rodinka.jpg" alt="Deň 20" class="timeline-image">
+                </div>
+            </div>
+
+            <!-- DEŇ 453 -->
+            <div class="timeline-item">
+                <div class="timeline-marker"></div>
+                <div class="timeline-content">
+                    <span class="day-label">Deň 453 (13.9.2025)</span>
+                    <h2></h2>
+                    <p>ps.: bola si tam hlavne aj mega pekná a dúfam že ťa v tých šatach ešte uvidím, a ta korunka proste čisto jak princezna z Disney si bola </p>
+                    <img src="images/mega pekná.jpg" alt="Deň 20" class="timeline-image">
+                </div>
+            </div>
+
+            <!-- DEŇ 453 -->
+            <div class="timeline-item">
+                <div class="timeline-marker"></div>
+                <div class="timeline-content">
+                    <span class="day-label">Deň 454 (14.9.2025)</span>
+                    <h2>Deň po tvojích narodeninách</h2>
+                    <p>Ako sme sa boli kupkat, najedli na saláši a prejebali všetky peniaze na losoch</p>
+                    <img src="images/kupkanie.jpg" alt="Deň 20" class="timeline-image">
+                </div>
+            </div>
+
+            <!-- DEŇ 453 -->
+            <div class="timeline-item">
+                <div class="timeline-marker"></div>
+                <div class="timeline-content">
+                    <span class="day-label">Deň 454 (14.9.2025)</span>
+                    <h2></h2>
+                    <p>0 Výherných, ale aj tak si moje najväčšie výťazstvo bola ty ❤️❤️❤️</p>
+                    <img src="images/losy.png" alt="Deň 20" class="timeline-image">
+                </div>
+            </div>
+
+            
+
+                <!-- DEŇ 500 -->
+                <div class="timeline-item">
+                    <div class="timeline-marker"></div>
+                    <div class="timeline-content">
+                        <span class="day-label">Deň 500 (30.10.2025)</span>
+                        <h2>Pol tisíc dní spolu</h2>
+                        <p>:( </p>
+                    </div>
+                </div>
+
+                <!-- Zakončenie timeline -->
+                <div class="timeline-end">
+                    <div class="end-marker"></div>
+                    <div class="end-content">
+                        <h2>A stále pokračujeme ďalej... ❤️</h2>
+                        <p>gl brasko.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div> <!-- Koniec main-content -->
+
+    <script>
+        const SECRET_CODE = "pipik";
+        
+        function checkCode() {
+            const input = document.getElementById('codeInput');
+            const errorMsg = document.getElementById('errorMessage');
+            const overlay = document.getElementById('secretOverlay');
+            const mainContent = document.getElementById('mainContent');
+            
+            if (input.value.toLowerCase() === SECRET_CODE) {
+                // Správny kód
+                overlay.classList.add('hidden');
+                setTimeout(() => {
+                    overlay.style.display = 'none';
+                    mainContent.classList.add('visible');
+                }, 500);
+            } else {
+                // Nesprávny kód
+                input.classList.add('error');
+                errorMsg.classList.add('show');
+                
+                setTimeout(() => {
+                    input.classList.remove('error');
+                    errorMsg.classList.remove('show');
+                }, 2000);
+                
+                input.value = '';
+            }
+        }
+        
+        // Enter na klávesnici
+        document.getElementById('codeInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                checkCode();
+            }
+        });
+
+        // Timeline animácie - spustia sa až po zadaní kódu
+        function startHeartAnimation() {
+            const timelineSection = document.querySelector('.timeline-section');
+
+            function createHeart() {
+                const heart = document.createElement('div');
+                heart.className = 'heart';
+                heart.textContent = '❤️';
+                
+                heart.style.left = Math.random() * 100 + '%';
+                heart.style.top = (Math.random() * 100 - 100) + '%';
+                
+                const size = Math.random() * 1.5 + 0.8;
+                heart.style.fontSize = size + 'rem';
+                
+                const sectionHeight = timelineSection.scrollHeight;
+                const duration = (sectionHeight / 100) * (Math.random() * 0.1 + 0.25);
+                
+                const keyframes = [
+                    { transform: 'translateY(0) rotate(0deg)', opacity: 0.6 },
+                    { transform: `translateY(${sectionHeight}px) rotate(360deg)`, opacity: 0.6 }
+                ];
+                
+                const animation = heart.animate(keyframes, {
+                    duration: duration * 1000,
+                    easing: 'linear'
+                });
+                
+                timelineSection.appendChild(heart);
+                
+                animation.onfinish = () => {
+                    heart.remove();
+                };
+            }
+
+            setInterval(createHeart, 200);
+            
+            for (let i = 0; i < 50; i++) {
+                setTimeout(createHeart, i * 100);
+            }
+        }
+
+        // Spustiť srdcia po úspešnom prihlásení
+        const originalCheckCode = checkCode;
+        checkCode = function() {
+            const input = document.getElementById('codeInput');
+            if (input.value.toLowerCase() === SECRET_CODE) {
+                originalCheckCode();
+                setTimeout(startHeartAnimation, 500);
+            } else {
+                originalCheckCode();
+            }
+        };
+    </script>
+</body>
+</html>
